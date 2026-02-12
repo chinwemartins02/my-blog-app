@@ -1,128 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Dashboard</title>
-<link rel="stylesheet" href="style.css" />
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-<div class="container">
-<h2>Dashboard</h2>
-<button id="logoutBtn">Logout</button>
+<div class="dashboard">
+  <h2>Admin Dashboard</h2>
 
-<!-- Create Post -->
-<h3>Create New Post</h3>
-<form id="createForm">
-  <input type="text" id="newTitle" placeholder="Post Title" required />
-  <textarea id="newContent" placeholder="Post Content" required></textarea>
-  <button type="submit">Create Post</button>
-</form>
+  <button onclick="logout()">Logout</button>
 
-<hr>
+  <input id="title" placeholder="Post title">
+  <textarea id="content" placeholder="Post content"></textarea>
 
-<h3>Your Posts</h3>
-<div id="userPosts"></div>
+  <button onclick="createPost()">Publish</button>
+
+  <div id="postList"></div>
 </div>
 
-<script>
-// Hardcoded JWT token
-const token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0L3dvcmRwcmVzcyIsImlhdCI6MTc3MDkyMTExOSwibmJmIjoxNzcwOTIxMTE5LCJleHAiOjE3NzE1MjU5MTksImRhdGEiOnsidXNlciI6eyJpZCI6IjEifX19.127uMMxWcDXIV5VjsYQIKtCy9FyVl5MjKkpq8A-iGhM";
-
-// Optional: store in localStorage for later use
-localStorage.setItem("token", token);
-
-// Logout
-document.getElementById("logoutBtn").addEventListener("click", ()=>{
-  localStorage.removeItem("token");
-  localStorage.removeItem("username");
-  window.location.href = "login.html";
-});
-
-// Load User Posts
-function loadPosts(){
-  fetch("http://localhost/wordpress/wp-json/wp/v2/posts?per_page=20", {
-    headers:{ "Authorization": "Bearer "+token }
-  })
-  .then(res=>res.json())
-  .then(posts=>{
-    let output="";
-    posts.forEach(post=>{
-      output+=`
-      <div class="post-card">
-        <h3>${post.title.rendered}</h3>
-        <p>${post.excerpt.rendered}</p>
-        <button onclick="editPost(${post.id})">Edit</button>
-        <button onclick="deletePost(${post.id})">Delete</button>
-      </div>
-      `;
-    });
-    document.getElementById("userPosts").innerHTML=output;
-  });
-}
-loadPosts();
-
-// Create Post
-document.getElementById("createForm").addEventListener("submit", function(e){
-  e.preventDefault();
-  const title = document.getElementById("newTitle").value;
-  const content = document.getElementById("newContent").value;
-
-  fetch("http://localhost/wordpress/wp-json/wp/v2/posts", {
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json",
-      "Authorization":"Bearer "+token
-    },
-    body: JSON.stringify({title, content, status:"publish"})
-  })
-  .then(res=>res.json())
-  .then(data=>{
-    alert("Post Created!");
-    loadPosts();
-    document.getElementById("createForm").reset();
-  });
-});
-
-// Edit Post
-function editPost(id){
-  const newTitle = prompt("Enter new title");
-  const newContent = prompt("Enter new content");
-
-  fetch(`http://localhost/wordpress/wp-json/wp/v2/posts/${id}`, {
-    method:"PUT",
-    headers:{
-      "Content-Type":"application/json",
-      "Authorization":"Bearer "+token
-    },
-    body: JSON.stringify({title:newTitle, content:newContent})
-  })
-  .then(res=>res.json())
-  .then(data=>{
-    alert("Post Updated!");
-    loadPosts();
-  });
-}
-
-// Delete Post
-function deletePost(id){
-  if(confirm("Are you sure you want to delete this post?")){
-    fetch(`http://localhost/wordpress/wp-json/wp/v2/posts/${id}?force=true`, {
-      method:"DELETE",
-      headers:{
-        "Authorization":"Bearer "+token
-      }
-    })
-    .then(res=>res.json())
-    .then(data=>{
-      alert("Post Deleted!");
-      loadPosts();
-    });
-  }
-}
-
-</script>
-
+<script src="js/dashboard.js"></script>
 </body>
 </html>
